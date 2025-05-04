@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Query Chatbot</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            height: 100vh;
+            font-size: 20px;
+        }
+        .left {
+            width: 30%;
+            padding: 25px;
+            border-right: 1px solid #ccc;
+        }
+        .center {
+            width: 70%;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+        h2 {
+            font-size: 28px;
+        }
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .chat-entry {
+            margin-bottom: 15px;
+        }
+        .chat-entry.user {
+            font-weight: bold;
+            color: #00529b;
+        }
+        .chat-entry.bot {
+            color: #333;
+            margin-left: 20px;
+        }
+        .query-form input[type="text"] {
+            font-size: 18px;
+            padding: 8px;
+            width: 80%;
+        }
+        .query-form button {
+            font-size: 18px;
+            padding: 10px 18px;
+            margin-top: 12px;
+            cursor: pointer;
+        }
+        input[type="file"] {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar" class="sidebar">
+        <button id="toggle-button">☰ Upload PDF</button>
+        <div id="upload-form" class="upload-form">
+            <h2>Upload PDF</h2>
+            <form method="post" enctype="multipart/form-data" action="/upload">
+                <input type="file" name="pdf_file" accept="application/pdf" required>
+                <br>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="center">
+        <h2>Query Chat</h2>
+        <div class="chat-box" id="chat-box">
+            <!-- Conversation will appear here -->
+        </div>
+        <form class="query-form" onsubmit="handleSubmit(event)">
+            <input type="text" id="query-input" placeholder="Ask a question..." required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    
+    <script>
+    function appendMessage(role, message) {
+        const chatBox = document.getElementById('chat-box');
+        const entry = document.createElement('div');
+        entry.className = `chat-entry ${role}`;
+
+
+        entry.textContent = message;
+        chatBox.appendChild(entry);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    
+    function handleSubmit(event) {
+        event.preventDefault();
+        const input = document.getElementById('query-input');
+        const question = input.value.trim();
+        if (!question) return;
+    
+        appendMessage('user', 'You: ' + question);
+        input.value = '';
+    
+        fetch('/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: question })
+        })
+        .then(response => response.json())
+        .then(data => {
+            appendMessage('bot', 'Bot: ' + (data.answer || data.error));
+        })
+        .catch(error => {
+            appendMessage('bot', 'Error: ' + error);
+        });
+    }
+    
+    // Toggle sidebar upload form
+    document.getElementById('toggle-button').addEventListener('click', function () {
+        const form = document.getElementById('upload-form');
+        form.style.display = form.style.display === 'block' ? 'none' : 'block';
+    });
+    </script>
+    </body>
+    
+</html>
