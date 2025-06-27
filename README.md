@@ -44,7 +44,7 @@ Graph-RAG/
 
 4. **Launch the app**
    ```bash
-   streamlit run app.py
+    python app.py
    ```
 
 5. **Start chatting with your PDF!**
